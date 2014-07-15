@@ -1,0 +1,10 @@
+	{% load category_tags %}
+	
+   	{% get_category as all_categories %}
+   	
+   	<ul id="left-container-list">
+   	{% for each in all_categories %}
+	   			<li><a href="{% url 'category-page' categoryid=each.id  %}">{{ each.name }}</a></li>
+   	{% endfor %}
+   	</ul>
+   	

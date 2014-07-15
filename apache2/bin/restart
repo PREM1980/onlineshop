@@ -1,0 +1,5 @@
+#!/bin/bash
+
+/home/prem1980/webapps/onlineshop/apache2/bin/stop
+sleep 5
+/home/prem1980/webapps/onlineshop/apache2/bin/start

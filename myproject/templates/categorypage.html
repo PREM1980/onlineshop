@@ -1,0 +1,119 @@
+{% extends "startpage.html" %}
+	{% block jsstyle %}
+	{% load staticfiles %}
+	
+	<link rel="stylesheet" href="{% static "css/categorypage.css" %}" />
+	
+	<script>
+	$(document).ready(function(){
+		//alert("This is the session name = " + "{{request.session.sessionid}}")
+		//feedback me code
+		imagepath_start = "http://onlineshop.prem1980.webfactional.com/online_static/product-images/book/"
+		var transactiondata;
+		
+		$.ajax({
+			async:false
+			,url:'/getproductinfo'
+			,type: 'POST'
+			,data: {session_id: '{{request.session.sessionid}}'
+					,categoryid: {{categoryid}} }
+		    ,success: createproducts
+		    ,error: function(msg){
+		    	alert("Call to getproductinfo failed")
+		    }
+		    
+		})
+		$("#exportExcel").click(function(){
+			$('#exportExcelform').submit()
+		});
+		
+		$("#exportpdf").click(function(){
+			$('#exportpdfform').submit()
+		})
+		 
+		
+		function createproducts(jsondata){
+			transactiondata = jsondata
+			$("<div id='product-container'></div>").appendTo("#product-list");
+			$('#pagination').pagination({
+	    	 items: jsondata.length
+	    	,itemsOnPage: 5
+	    	,onInit:redrawData
+	    	,onPageClick: redrawData
+	    	,cssStyle: 'light-theme'});
+		}
+		
+		function redrawData(pageNumber,event){
+			console.log('jsondata = ' + JSON.stringify(transactiondata))
+			//alert('pagenumber = '+ pageNumber )
+			if (pageNumber) {
+				//alert('pageNumber * 5 = ' + pageNumber * 5)
+				//alert('Mathmin = ' + Math.min((pageNumber+1)*5,transactiondata.length))
+				slicedata = transactiondata.slice(pageNumber*5,
+						Math.min((pageNumber+1)*5,transactiondata.length));
+			}
+			else {
+				slicedata = transactiondata.slice(0,5)	
+			}
+			
+			$("#product-container").empty()
+			slicedata.forEach(function(e,i,a){
+				var obj = e;
+				$("<div id = product" + i + " class = product-cards  </div>").appendTo('#product-container')
+				console.log('prem obj.image_caption = ' + obj.image_caption)
+				//-working$("<div id='product" + i + "left'  class='product-cards-left' style='background-image:url(  " + imagepath_start + obj.image_caption + ")'> </div>").appendTo('#product' + i);
+				//lightbox is the jquery plugin that we use..The below line is very sensitive...
+				$("<a href= " + imagepath_start + obj.image_caption + " data-lightbox="+ imagepath_start + obj.image_caption+"> <div id='product" + i + "left'  class='product-cards-left' style='background-image:url(  " + imagepath_start + obj.image_caption + ")' > </div></a>").appendTo('#product' + i);
+				$("<div id = product" + i + "right class = product-cards-right> </div>").appendTo('#product' + i   )
+				$("<label><b>  NAME: <b></label>  <label>" + obj.name + "</label><br>").appendTo('#product' + i +"right"   )
+				$("<label><b>  Price: <b></label>  <label>" + '$' + obj.price + "</label><br>").appendTo('#product' + i +"right"   )
+				$("<label><b>  Old Price: <b></label>  <label>" + '$' + obj.old_price + "</label><br>").appendTo('#product' + i +"right"   )
+				$("<label><b>  Author Name: <b></label>  <label>" + obj.author_name + "</label>").appendTo('#product' + i +"right"   )
+			})
+			
+			//slicedata.forEach(function(e,i,a){
+			//	var obj = e;
+			//	$("<div id = product" + i + " class = product-cards  </div>").appendTo('#product-container')
+			//	console.log('prem obj.image_caption = ' + obj.image_caption)
+				//-working$("<div id='product" + i + "left'  class='product-cards-left' style='background-image:url(  " + imagepath_start + obj.image_caption + ")'> </div>").appendTo('#product' + i);
+				//lightbox is the jquery plugin that we use..The below line is very sensitive...
+			//	$("<a href= " + imagepath_start + obj.image_caption + " data-lightbox="+ imagepath_start + obj.image_caption+"> <div id='product" + i + "left'  class='product-cards-left' style='background-image:url(  " + imagepath_start + obj.image_caption + ")' > </div></a>").appendTo('#product' + i);
+			//	$("<div id = product" + i + "right class = product-cards-right> </div>").appendTo('#product' + i   )
+		    //	$("<label><b>  NAME: <b></label>  <label>" + obj.name + "</label><br>").appendTo('#product' + i +"right"   )
+			//	$("<label><b>  Price: <b></label>  <label>" + '$' + obj.price + "</label><br>").appendTo('#product' + i +"right"   )
+			//	$("<label><b>  Old Price: <b></label>  <label>" + '$' + obj.old_price + "</label><br>").appendTo('#product' + i +"right"   )
+			//	$("<label><b>  Author Name: <b></label>  <label>" + obj.author_name + "</label>").appendTo('#product' + i +"right"   )
+			//})
+		}
+		
+	
+	})	
+	</script>
+	<style>
+	</style>
+	
+	{% endblock %}	
+
+	{% block right-container %}
+		<form id="exportExcelform" action="/createexcel" method="post" style="display:none">
+	 		<input  type="submit" value="" />
+	 	</form>
+	 	<form id="exportpdfform" action="/createpdf" method="post" style="display:none">
+	 		<input  type="submit" value="" />
+	 	</form>
+			 
+		<div id="sort-controls">
+			<div id="pagination"></div>
+			<div id="downloads">
+				{% load staticfiles %}
+				<a href="#" id="exportExcel"/>Excel&nbsp;<img src="{% static "img/ExcelImgSml.gif" %}" width="25" height="25" title="Export to Excel Spreadsheet" style="margin-right:10px"></a>&nbsp;
+				<a href="#" id="exportpdf">PDF&nbsp;<img src="{% static "img/PDFImgSml.gif" %}" width="25" height="25" title="Export to PDF"></a>&nbsp;         	    
+         	    
+			</div>
+		</div>
+		
+		<div id="product-list"></div>
+	
+	{% endblock %}	
+
+
